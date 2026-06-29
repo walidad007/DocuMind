@@ -1,11 +1,7 @@
 from langchain_chroma import Chroma
 from server.rag.embeddings import get_embedding_model
-import os
+from server.config import CHROMA_DB_PATH as DB_PATH, COLLECTION_NAME
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DB_PATH = os.path.join(BASE_DIR, "storage", "chroma_db")
-
-COLLECTION_NAME = "rag_collection"
 
 
 def create_vectorstore(chunks):
