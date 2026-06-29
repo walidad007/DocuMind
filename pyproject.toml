@@ -17,4 +17,5 @@ dependencies = [
     "langchain-groq>=0.1.5",
     "langchain-chroma>=0.1.4",
     "uvicorn>=0.48.0",
+    "torch>=2.12.0",
 ]
