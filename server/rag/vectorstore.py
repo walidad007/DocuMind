@@ -1,6 +1,7 @@
 from langchain_chroma import Chroma
 from server.rag.embeddings import get_embedding_model
 from server.config import CHROMA_DB_PATH as DB_PATH, COLLECTION_NAME
+from server.logger import logger
 
 
 
@@ -24,14 +25,13 @@ def create_vectorstore(chunks):
 
     vectorstore.add_documents(chunks)
 
-    # print("Chunks stored:", len(chunks))
-    # print("DB count:", vectorstore._collection.count())
-
-    # ===============Temporarily==============
-    print("\n===== CREATE VECTORSTORE =====")
-    print("DB_PATH =", DB_PATH)
-    print("COLLECTION =", COLLECTION_NAME)
-    print("COUNT =", vectorstore._collection.count())
+    
+    # # ===============Temporarily==============
+    # print("\n===== CREATE VECTORSTORE =====")
+    # print("DB_PATH =", DB_PATH)
+    # print("COLLECTION =", COLLECTION_NAME)
+    # print("COUNT =", vectorstore._collection.count())
+    logger.info(f"Vectorstore  created | path={DB_PATH} | collection = {COLLECTION_NAME} | count={vectorstore._collection.count()}")
 
     return vectorstore
 
@@ -60,18 +60,19 @@ def clear_vectorstore():
 
     vectorstore.delete_collection()
 
-    print("\n===== VECTORSTORE CLEARED =====")
-
-
+    # print("\n===== VECTORSTORE CLEARED =====")
+    logger.info("===== VECTORSTORE CLEARED =====")
+    
 # ===============Temporarily==============
 
 
 def load_vectorstore():
     embeddings = get_embedding_model()
 
-    print("\n===== LOAD VECTORSTORE =====")
-    print("DB_PATH =", DB_PATH)
-    print("COLLECTION =", COLLECTION_NAME)
+    # print("\n===== LOAD VECTORSTORE =====")
+    # print("DB_PATH =", DB_PATH)
+    # print("COLLECTION =", COLLECTION_NAME)
+    
 
     vectorstore = Chroma(
         collection_name=COLLECTION_NAME,
@@ -79,8 +80,8 @@ def load_vectorstore():
         embedding_function=embeddings,
     )
 
+    # print("COUNT =", count)
     count = vectorstore._collection.count()
-
-    print("COUNT =", count)
+    logger.info(f"Vectorstore loaded | path={DB_PATH} | collection={COLLECTION_NAME} | count={count}")
 
     return vectorstore
