@@ -4,84 +4,77 @@ from server.config import CHROMA_DB_PATH as DB_PATH, COLLECTION_NAME
 from server.logger import logger
 
 
-
 def create_vectorstore(chunks):
+    """Create a new vector database from text chunks."""
+    # Get the embedding model to convert text into vectors
     embeddings = get_embedding_model()
 
+    # Initialize Chroma database instance
     vectorstore = Chroma(
         collection_name=COLLECTION_NAME,
         persist_directory=DB_PATH,
         embedding_function=embeddings,
     )
 
-    # Testing phase
+    # Clean the old collection first to avoid duplicate data during testing
     vectorstore.delete_collection()
 
+    # Re-initialize a fresh collection instance
     vectorstore = Chroma(
         collection_name=COLLECTION_NAME,
         persist_directory=DB_PATH,
         embedding_function=embeddings,
     )
 
+    # Add text chunks and their generated embeddings to the database
     vectorstore.add_documents(chunks)
 
-    
-    # # ===============Temporarily==============
-    # print("\n===== CREATE VECTORSTORE =====")
-    # print("DB_PATH =", DB_PATH)
-    # print("COLLECTION =", COLLECTION_NAME)
-    # print("COUNT =", vectorstore._collection.count())
-    logger.info(f"Vectorstore  created | path={DB_PATH} | collection = {COLLECTION_NAME} | count={vectorstore._collection.count()}")
+    # Track how many items were successfully stored
+    count = vectorstore._collection.count()
+    logger.info(
+        "Vectorstore created | path=%s | collection=%s | count=%d",
+        DB_PATH,
+        COLLECTION_NAME,
+        count,
+    )
 
     return vectorstore
 
 
-# ==========================================================
-# Clear existing Chroma collection
-# Used when user wants a fresh Knowledge Base
-# ==========================================================
-
-
 def clear_vectorstore():
-    """
-    Delete the entire Chroma collection.
-
-    This removes all embeddings and vectors
-    stored in the database.
-    """
-
+    """Delete the entire Chroma collection to clear the knowledge base."""
     embeddings = get_embedding_model()
 
+    # Connect to the existing vector store
     vectorstore = Chroma(
         collection_name=COLLECTION_NAME,
         persist_directory=DB_PATH,
         embedding_function=embeddings,
     )
 
+    # Physically delete the database collection from disk
     vectorstore.delete_collection()
-
-    # print("\n===== VECTORSTORE CLEARED =====")
     logger.info("===== VECTORSTORE CLEARED =====")
-    
-# ===============Temporarily==============
 
 
 def load_vectorstore():
+    """Load the existing vector store database from disk memory."""
     embeddings = get_embedding_model()
 
-    # print("\n===== LOAD VECTORSTORE =====")
-    # print("DB_PATH =", DB_PATH)
-    # print("COLLECTION =", COLLECTION_NAME)
-    
-
+    # Connect to the saved database instance
     vectorstore = Chroma(
         collection_name=COLLECTION_NAME,
         persist_directory=DB_PATH,
         embedding_function=embeddings,
     )
 
-    # print("COUNT =", count)
+    # Check the total document count currently saved in the database
     count = vectorstore._collection.count()
-    logger.info(f"Vectorstore loaded | path={DB_PATH} | collection={COLLECTION_NAME} | count={count}")
+    logger.info(
+        "Vectorstore loaded | path=%s | collection=%s | count=%d",
+        DB_PATH,
+        COLLECTION_NAME,
+        count,
+    )
 
     return vectorstore
