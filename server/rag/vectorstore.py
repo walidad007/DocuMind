@@ -1,7 +1,12 @@
+import os
+
 from langchain_chroma import Chroma
 from server.rag.embeddings import get_embedding_model
 from server.config import CHROMA_DB_PATH as DB_PATH, COLLECTION_NAME
 from server.logger import logger
+
+# Automatically create the chroma_db folder structure if missing
+os.makedirs(DB_PATH, exist_ok=True)
 
 
 def create_vectorstore(chunks):

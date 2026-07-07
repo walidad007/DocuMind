@@ -1,10 +1,11 @@
 from server.logger import logger
 import os
 from langchain_community.document_loaders import PyPDFLoader
+from server.config import UPLOAD_FOLDER
 
-# Calculate absolute path from this file's location
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-UPLOAD_FOLDER = os.path.join(BASE_DIR, "storage", "uploaded_pdfs")
+
+# Create folder if it doesn't exist under root/storage
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # Create the folder automatically if it does not exist yet
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)

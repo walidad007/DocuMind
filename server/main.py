@@ -1,17 +1,18 @@
-from fastapi import FastAPI, UploadFile, File
+import logging
+from typing import List
+from fastapi import FastAPI, UploadFile, File, HTTPException
 from server.rag.chat_service import ask_question
 from server.rag.pdf_loader import save_uploaded_pdfs, load_pdfs, clear_uploaded_pdfs
 from server.rag.text_splitter import split_documents
-from server.rag.vectorstore import (
-    create_vectorstore,
-    clear_vectorstore,
-)
-from typing import List
-from server.logger import logger
+from server.rag.vectorstore import create_vectorstore, clear_vectorstore
+
+# Initialize logger
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
-logger.info("MY MAIN.PY LOADED")
+logger.info("MAIN.PY APP INITIALIZED")
+
 
 @app.get("/")
 def home():
@@ -22,58 +23,47 @@ def home():
 @app.post("/upload")
 async def upload_pdfs(files: List[UploadFile] = File(...)):
     """Upload multiple PDFs, process them into chunks, and save to Vector DB."""
-
     logger.info("Upload endpoint triggered. Files received: %d", len(files))
 
+    try:
+        # Step 1: Save files to disk memory asynchronously
+        await save_uploaded_pdfs(files)
 
-    # Log each filename for incoming request verification
-    for f in files:
-        logger.debug("Processing incoming file: %s", f.filename)
-    
-    # Step 1: Save files to disk memory asynchronously
-    await save_uploaded_pdfs(files)
+        # Step 2: Load the raw documents using LangChain loader
+        documents = load_pdfs()
+        logger.info("Documents loaded successfully. Count: %d", len(documents))
 
-    # Step 2: Load the raw documents using LangChain loader
-    documents = load_pdfs()
-    logger.info("Document loaded successfully. Count: %d", len(chunks))
-    
-    # Step 3: Split the documents into smaller text pieces
-    chunks = split_documents(documents)
-    logger.info("Chunks created successfully. Count %d", len(chunks))
+        # Step 3: Split the documents into smaller text pieces
+        chunks = split_documents(documents)
+        logger.info("Chunks created successfully. Count: %d", len(chunks))
 
-    # Step 4: Store chunks into the vector database
-    vectorstore = create_vectorstore(chunks)
-    lgger.info("Document successfully indexed in vector store. Database total: %d",vectorstore._collection.count())
-    
+        # Step 4: Store chunks into the vector database
+        # (Yahan try-except laga diya taake model download ya DB error pakda ja sake)
+        logger.info("Starting embedding generation and vector storage...")
+        vectorstore = create_vectorstore(chunks)
+        
+        count = vectorstore._collection.count()
+        logger.info("Documents successfully indexed. Database total: %d", count)
 
-    return {
-        "status": "success",
-        "message": "PDF processed successfully",
-    }
+        return {
+            "status": "success",
+            "message": "PDF processed successfully",
+        }
 
-
-# ==========================================================
-# Clear Knowledge Base
-#
-# Removes:
-# 1. All uploaded PDFs
-# 2. All vector embeddings
-#
-# Allows user to start with a fresh dataset
-# ==========================================================
+    except Exception as e:
+        # Pura error detail backend logs/terminal mein print karein
+        logger.error("CRITICAL ERROR DURING UPLOAD PIPELINE: %s", str(e), exc_info=True)
+        
+        # Proper JSON error bhein frontend ko taake JSONDecodeError na aaye
+        raise HTTPException(status_code=500, detail=f"Backend Error: {str(e)}")
 
 
 @app.post("/clear-kb")
 def clear_kb():
     """Wipe out the knowledge base by deleting local files and vector DB."""
     logger.info("Clear Knowledge Base endpoint triggered.")
-    
-    # Remove physical files from the storage folder
     clear_uploaded_pdfs()
-
-    # Remove data collections from the vector database
     clear_vectorstore()
-
     logger.info("Knowledge Base cleared successfully.")
     return {"status": "success", "message": "Knowledge Base cleared successfully"}
 
@@ -82,11 +72,8 @@ def clear_kb():
 def chat(query: str):
     """Answer user questions based on the uploaded data context."""
     logger.info("Chat endpoint triggered with query: %s", query)
-
-    # Get answer and sources from chat service
     result = ask_question(query)
 
-    # Safety check if the service returns an empty or None response
     if result is None:
         logger.warning("Chat service returned None for query: %s", query)
         return {
@@ -95,5 +82,8 @@ def chat(query: str):
             "sources": [],
         }
 
-    logger.info("Chat response generated successfully.")
-    return {"query": query, "answer": result["answer"], "sources": result["sources"]}
+    return {
+        "query": query, 
+        "answer": result["answer"], 
+        "sources": result["sources"]
+    }
