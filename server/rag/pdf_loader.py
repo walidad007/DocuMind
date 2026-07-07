@@ -100,4 +100,4 @@ def clear_uploaded_pdfs():
 
             logger.info("Deleted: %s", filename)
 
-    print("All uploaded PDFs removed.")
+    logger.info("All uploaded PDFs removed.")
