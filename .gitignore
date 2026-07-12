@@ -15,7 +15,7 @@ Thumbs.db
 storage/
 
 
-server/storage/
+
 server/logs/
 .env
 __pycache__/

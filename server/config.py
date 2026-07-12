@@ -8,7 +8,7 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 # Get project root directory (DocuMind/)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# Shared storage path under root directory
+# Shared storage path under root directory (storage/)
 STORAGE_DIR = os.path.join(BASE_DIR, "storage")
 
 # Specific paths inside the main storage folder

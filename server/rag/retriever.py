@@ -1,5 +1,7 @@
 from server.rag.vectorstore import load_vectorstore
 from server.logger import logger
+
+
 def get_retriever():
     """Convert the loaded Vectorstore into a search retriever interface."""
     logger.info("Initializing document retriever...")
