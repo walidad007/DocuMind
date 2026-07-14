@@ -45,23 +45,6 @@ def create_vectorstore(chunks):
 
     return vectorstore
 
-
-def clear_vectorstore():
-    """Delete the entire Chroma collection to clear the knowledge base."""
-    embeddings = get_embedding_model()
-
-    # Connect to the existing vector store
-    vectorstore = Chroma(
-        collection_name=COLLECTION_NAME,
-        persist_directory=DB_PATH,
-        embedding_function=embeddings,
-    )
-
-    # Physically delete the database collection from disk
-    vectorstore.delete_collection()
-    logger.info("===== VECTORSTORE CLEARED =====")
-
-
 def load_vectorstore():
     """Load the existing vector store database from disk memory."""
     embeddings = get_embedding_model()
@@ -83,3 +66,20 @@ def load_vectorstore():
     )
 
     return vectorstore
+
+def clear_vectorstore():
+    """Delete the entire Chroma collection to clear the knowledge base."""
+    embeddings = get_embedding_model()
+
+    # Connect to the existing vector store
+    vectorstore = Chroma(
+        collection_name=COLLECTION_NAME,
+        persist_directory=DB_PATH,
+        embedding_function=embeddings,
+    )
+
+    # Physically delete the database collection from disk
+    vectorstore.delete_collection()
+    logger.info("===== VECTORSTORE CLEARED =====")
+
+
