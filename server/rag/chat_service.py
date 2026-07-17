@@ -30,7 +30,7 @@ def ask_question(query):
 
 
 
-    # Step 4: Build a fresh RAG chain to make sure it picks up newly uploaded docs
+    # Step 4: Pass the same retriever into RAG chain — avoids creating a second retriever
     qa_chain = build_rag_chain(retriever)
 
     # Step 5: Run the query through the RAG chain (retriever + LLM combined)
